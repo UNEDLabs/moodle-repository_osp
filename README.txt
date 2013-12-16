@@ -36,7 +36,7 @@ tested in all Moodle 2.x versions.
 ==========
 
 This plugin works better with the ejsapp module plugin. You can find and download 
-it at https://moodle.org/plugins/view.php?plugin=mod_ejsappbooking, in the plugins 
+it at https://moodle.org/plugins/view.php?plugin=mod_ejsapp, in the plugins 
 section in the Moodle.org webpage or at https://github.com/UNEDLabs.
 
 5. Authors
