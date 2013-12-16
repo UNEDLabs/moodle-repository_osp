@@ -24,21 +24,27 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-define('OSP_URL', 'http://www.compadre.org/osp/services/REST/search_v1_02.cfm?verb=Search&OSPType=EJS+Model&');
+define('LIST_ALL_SIMULATIONS_URL', 'http://www.compadre.org/osp/services/REST/osp_moodle.cfm?');
+define('SEARCH_URL', 'http://www.compadre.org/osp/services/REST/search_v1_02.cfm?verb=Search&OSPType=EJS+Model&');
 define('OSP_THUMBS_PER_PAGE', 10);
 
 class osp {
 
-    function load_xml_file($url) {
+    function load_xml_file($url, $choice) {
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_HEADER, 0);
         $xml = simplexml_load_string(curl_exec($ch));
         curl_close($ch);
-        return $xml->Search->records;
+        if ($choice == LIST_ALL_SIMULATIONS_URL) {
+            return $xml->Results->records;
+        } else { // choice == SEARCH_URL
+            return $xml->Search->records;
+        }
     } //load_xml_file
 
     function process_record($record){
+
         /////////////////////////////////////////////////////
         // Remark: a record may include 0..n simulations
         /////////////////////////////////////////////////////
@@ -49,7 +55,7 @@ class osp {
         // <information common to all the simulations of the record>
 
         $result['common_information'] = array();
-        
+
         // author
         $seeker = (array) $record->contributors;
         $author = $seeker['contributor'];
@@ -70,38 +76,38 @@ class osp {
         $result['common_information']['license'] = 'cc-sa';
 
         // <\information common to all the simulations of the record>
-        
 
         // <information specific for each simulation of the record>
 
         $result['simulations'] = array();
         $simulation = array();
+        $seeker = $record->{'attached-document'};
+        foreach ($seeker as $value) {
+            if (is_object($value)) {
+                $filename = (string) $value->{'file-name'};
+                $extension = pathinfo($filename, PATHINFO_EXTENSION);
+                if ( ($extension == 'jar') ) { //or ($extension == 'zip') ) {
 
-        $seeker = (array) $record_as_array['attached-document'];
-        foreach ($seeker as $key => $value) {
-            $filename = (string) $value->{'file-name'};
-            $extension = pathinfo($filename, PATHINFO_EXTENSION);
-            if ( ($extension == 'jar') or ($extension == 'js') ) {
+                    // filename title
+                    $simulation['title'] = $filename;
 
-                // filename title
-                $simulation['title'] = $filename;
+                    // source
+                    $source = (string) $value->{'access-url'};
+                    $simulation['source'] = $source . '&EJSMoodleApp=1';
 
-                // source
-                $source = (string) $value->{'access-url'};
-                $simulation['source'] = $source . '&EJSMoodleApp=1';
+                    // shorttitle
+                    $description = (string) $record->{'description'};
+                    $description = preg_replace('/<.+?>/', '', $description);
+                    $simulation['shorttitle'] = '`' . $filename . '´: ' . $description;
 
-                // shorttitle
-                $description = (string) $record->{'description'};
-                $description = preg_replace('/<.+?>/', '', $description);
-                $simulation['shorttitle'] = '`' . $filename . '´: ' . $description;
+                    // size
+                    $seeker_aux = (array) $value->{'file-name'};
+                    $seeker_aux = $seeker_aux['@attributes'];
+                    $size = $seeker_aux['file-size'];
+                    $simulation['size'] = $size;
 
-                // size
-                $seeker_aux = (array) $value->{'file-name'};
-                $seeker_aux = $seeker_aux['@attributes'];
-                $size = $seeker_aux['file-size'];
-                $simulation['size'] = $size;
-
-                $result['simulations'][] = $simulation;
+                    $result['simulations'][] = $simulation;
+                }
             }
         } //foreach
 
@@ -122,13 +128,17 @@ class osp {
     } //format_keywords
 
     public function search_simulations($keywords, $page) {
-        // get Skip OSP parameter from $page
+        // get skip OSP parameter from $page
         $skip = OSP_THUMBS_PER_PAGE * ($page);
 
         // get records from compadre that fulfill the keywords
-        $records= $this->load_xml_file(OSP_URL . 'Skip=' . $skip . '&Max=' .
-            OSP_THUMBS_PER_PAGE .'&q=' . $keywords);
-
+        if ($keywords == '*') { // list all simulations
+            $records= $this->load_xml_file(LIST_ALL_SIMULATIONS_URL . 'skip=' . $skip . '&max=' .
+                OSP_THUMBS_PER_PAGE, LIST_ALL_SIMULATIONS_URL);
+        } else { // search with a keyword
+            $records = $this->load_xml_file(SEARCH_URL . 'Skip=' . $skip . '&Max=' .
+                OSP_THUMBS_PER_PAGE .'&q="' . $keywords . '"', SEARCH_URL);
+        }
         $file_list = array();
         if (isset($records->record)) {
             foreach($records->record as $record){

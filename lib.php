@@ -53,7 +53,7 @@ class repository_osp extends repository {
     }
 
     public function get_listing($path = '', $page = '') {
-        $client = new osp;
+    $client = new osp;
         $list = array();
         $list['page'] = (int)$page;
         if ($list['page'] < 1) {
@@ -63,7 +63,7 @@ class repository_osp extends repository {
         $list['list'] = $client->search_simulations($client->format_keywords($this->keywords), $list['page'] - 1);
         $list['nologin'] = true;
         $list['norefresh'] = true;
-        if ( !empty($list['list']) and (count($list['list']) >= OSP_THUMBS_PER_PAGE) ) {
+        if ( !empty($list['list']) ) {
             $list['pages'] = -1; // means we don't know exactly how many pages there are but we can always jump to the next page
         } else if ($list['page'] > 1) {
             $list['pages'] = $list['page']; // no images available on this page, this is the last page
@@ -94,7 +94,7 @@ class repository_osp extends repository {
         $list['help'] = 'http://www.compadre.org/osp/search/search.cfm?qc=Compiled+Simulation&q='.$keywords;
         $list['nologin'] = true;
         $list['norefresh'] = true;
-        if ( !empty($list['list']) and (count($list['list']) >= OSP_THUMBS_PER_PAGE) ) {
+        if ( !empty($list['list']) ) {
             $list['pages'] = -1; // means we don't know exactly how many pages there are but we can always jump to the next page
         } else if ($list['page'] > 1) {
             $list['pages'] = $list['page']; // no images available on this page, this is the last page
@@ -109,12 +109,12 @@ class repository_osp extends repository {
     }
 
     /**
-     * EJSApp OSP plugin supports .jar and .js files
+     * EJSApp OSP plugin supports .jar and .zip files
      *
      * @return array
      */
     public function supported_filetypes() {
-        return array('application/java-archive','application/javascript');
+        return array('application/java-archive'); //,'application/zip');
     }
 
     /**
