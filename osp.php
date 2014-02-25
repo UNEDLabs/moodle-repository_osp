@@ -25,7 +25,7 @@
  */
 
 define('LIST_ALL_SIMULATIONS_URL', 'http://www.compadre.org/osp/services/REST/osp_moodle.cfm?');
-define('SEARCH_URL', 'http://www.compadre.org/osp/services/REST/search_v1_02.cfm?verb=Search&OSPType=EJS+Model&');
+define('SEARCH_URL', 'http://www.compadre.org/osp/services/REST/search_v1_02.cfm?verb=Search&');
 define('OSP_THUMBS_PER_PAGE', 10);
 
 class osp {
@@ -85,8 +85,12 @@ class osp {
         foreach ($seeker as $value) {
             if (is_object($value)) {
                 $filename = (string) $value->{'file-name'};
+                $filetype = (string) $value->{'file-type'};
+                $xml_title = (string) $value->{'title'};
                 $extension = pathinfo($filename, PATHINFO_EXTENSION);
-                if ( ($extension == 'jar') ) { //or ($extension == 'zip') ) {
+                if ( (($extension == 'jar') or ($extension == 'zip'))
+                    and ($filetype == 'Main')
+                    and ($xml_title != 'Easy Java Simulations Modeling and Authoring Tool') ) {
 
                     // filename title
                     $simulation['title'] = $filename;
@@ -135,9 +139,11 @@ class osp {
         if ($keywords == '*') { // list all simulations
             $records= $this->load_xml_file(LIST_ALL_SIMULATIONS_URL . 'skip=' . $skip . '&max=' .
                 OSP_THUMBS_PER_PAGE, LIST_ALL_SIMULATIONS_URL);
+
         } else { // search with a keyword
             $records = $this->load_xml_file(SEARCH_URL . 'Skip=' . $skip . '&Max=' .
                 OSP_THUMBS_PER_PAGE .'&q="' . $keywords . '"', SEARCH_URL);
+
         }
         $file_list = array();
         if (isset($records->record)) {
