@@ -1,5 +1,5 @@
 ######################
-# OSP Repository 1.1 #
+# OSP Repository 1.2 #
 ######################
 
 1. Content

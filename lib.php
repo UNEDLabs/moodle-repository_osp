@@ -1,22 +1,27 @@
 <?php
 
-// This file is part of Moodle - http://moodle.org/
+// This file is part of the Moodle repository plugin "OSP"
 //
-// Moodle is free software: you can redistribute it and/or modify
+// OSP is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// Moodle is distributed in the hope that it will be useful,
+// OSP is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+// The GNU General Public License is available on <http://www.gnu.org/licenses/>
+//
+// OSP has been developed by:
+//	- Ruben Heradio: rheradio@issi.uned.es
+//  - Luis de la Torre: ldelatorre@dia.uned.es
+//
+//  at the Universidad Nacional de Educacion a Distancia, Madrid, Spain
 
 /**
- * This plugin is used to access EJS applications from the OSP collection in compadre
+ * This plugin is used to access EJS applications from the OSP collection in ComPADRE.
  *
  * @package    repository
  * @subpackage osp
@@ -59,10 +64,11 @@ class repository_osp extends repository {
         if ($list['page'] < 1) {
             $list['page'] = 1;
         }
-        $list['help'] = 'http://www.compadre.org/osp';
+        $list['manage'] = 'http://www.compadre.org/osp/';
+        $list['help'] = $CFG->dirroot . '/repository/osp/help/help.htm';
         $list['list'] = $client->search_simulations($client->format_keywords($this->keywords), $list['page'] - 1);
         $list['nologin'] = true;
-        $list['norefresh'] = true;
+        $list['norefresh'] = false;
         if ( !empty($list['list']) ) {
             $list['pages'] = -1; // means we don't know exactly how many pages there are but we can always jump to the next page
         } else if ($list['page'] > 1) {
@@ -80,6 +86,8 @@ class repository_osp extends repository {
         return false;
     }
     public function search($search_text, $page = '') {
+        global $CFG;
+
         $client = new osp;
         $list = array();
         $list['page'] = (int)$page;
@@ -91,9 +99,10 @@ class repository_osp extends repository {
         }
         $keywords = $client->format_keywords($search_text);
         $list['list'] = $client->search_simulations($keywords, $list['page'] - 1);
-        $list['help'] = 'http://www.compadre.org/osp/search/search.cfm?qc=Compiled+Simulation&q='.$keywords;
+        $list['manage'] = 'http://www.compadre.org/osp/';
+        $list['help'] = $CFG->wwwroot . '/repository/osp/help/help.htm';
         $list['nologin'] = true;
-        $list['norefresh'] = true;
+        $list['norefresh'] = false;
         if ( !empty($list['list']) ) {
             $list['pages'] = -1; // means we don't know exactly how many pages there are but we can always jump to the next page
         } else if ($list['page'] > 1) {
@@ -114,7 +123,7 @@ class repository_osp extends repository {
      * @return array
      */
     public function supported_filetypes() {
-        return array('application/java-archive'); //,'application/zip');
+        return array('application/java-archive','application/zip');
     }
 
     /**

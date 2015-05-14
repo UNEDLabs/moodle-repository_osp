@@ -1,19 +1,24 @@
 <?php
 
-// This file is part of Moodle - http://moodle.org/
+// This file is part of the Moodle repository plugin "OSP"
 //
-// Moodle is free software: you can redistribute it and/or modify
+// OSP is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
-// Moodle is distributed in the hope that it will be useful,
+// OSP is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+// The GNU General Public License is available on <http://www.gnu.org/licenses/>
+//
+// OSP has been developed by:
+//	- Ruben Heradio: rheradio@issi.uned.es
+//  - Luis de la Torre: ldelatorre@dia.uned.es
+//
+//  at the Universidad Nacional de Educacion a Distancia, Madrid, Spain
 
 /**
  * This plugin is used to access EJS applications from the OSP collection in compadre
@@ -26,9 +31,16 @@
 
 define('LIST_ALL_SIMULATIONS_URL', 'http://www.compadre.org/osp/services/REST/osp_moodle.cfm?');
 define('SEARCH_URL', 'http://www.compadre.org/osp/services/REST/search_v1_02.cfm?verb=Search&');
-define('OSP_THUMBS_PER_PAGE', 10);
+define('OSP_THUMBS_PER_PAGE_JAVA', 10);
+define('OSP_THUMBS_PER_PAGE_JAVASCRIPT', 25);
+define('OSP_THUMBS_PER_PAGE_JAVASCRIPT_ALL', 1000);
 
 class osp {
+
+    private $java_words = array('java', 'jar', 'ejs');
+    private $javascript_words = array('javascript', 'js', 'zip', 'ejss');
+    private $java_in_keywords = false;
+    private $javascript_in_keyword = false;
 
     function load_xml_file($url, $choice) {
         $ch = curl_init($url);
@@ -88,9 +100,11 @@ class osp {
                 $filetype = (string) $value->{'file-type'};
                 $xml_title = (string) $value->{'title'};
                 $extension = pathinfo($filename, PATHINFO_EXTENSION);
-                if ( (($extension == 'jar') or ($extension == 'zip'))
-                    and ($filetype == 'Main')
-                    and ($xml_title != 'Easy Java Simulations Modeling and Authoring Tool') ) {
+
+                if (  ( (($extension == 'jar') && $this->java_in_keywords && preg_match('/^ejs_/i', $filename)) ||
+                        (($extension == 'zip') && $this->javascript_in_keywords && preg_match('/^ejss_/i', $filename)))
+                    && ($filetype == 'Main')
+                    && ($xml_title != 'Easy Java Simulations Modeling and Authoring Tool')  ) {
 
                     // filename title
                     $simulation['title'] = $filename;
@@ -120,7 +134,52 @@ class osp {
         return $result;
     } // process_record
 
+
     public function format_keywords($keywords) {
+
+        // < Let's see if java/javascript simulations have to be filtered... >
+
+        // java ?
+        $this->java_in_keywords = false;
+        $found = false;
+        $i = 0;
+        $size = sizeof($this->java_words);
+        while ( (!($this->java_in_keywords)) && ($i<$size) ) {
+            if ( preg_match('/\b' . $this->java_words[$i] . '\b/i', $keywords) ) {
+                $this->java_in_keywords = true;
+                foreach ( $this->java_words as $java_word) {
+                    $keywords = preg_replace('/\b' . $java_word . '\b/i', '', $keywords);
+                }
+            } else {
+                $i++;
+            }
+        }
+
+        // javascript ?
+        $this->javascript_in_keywords = false;
+        $found = false;
+        $i = 0;
+        $size = sizeof($this->javascript_words);
+        while ( (!($this->javascript_in_keywords)) && ($i<$size) ) {
+            if ( preg_match('/\b' . $this->javascript_words[$i] . '\b/i', $keywords) ) {
+                $this->javascript_in_keywords = true;
+                foreach ( $this->javascript_words as $javascript_word) {
+                    $keywords = preg_replace('/\b' . $javascript_word . '\b/i', '', $keywords);
+                }
+            } else {
+                $i++;
+            }
+        }
+
+        // by default, no filter is used
+        if ( !( $this->java_in_keywords) && !($this->javascript_in_keywords) ) {
+            $this->java_in_keywords = true;
+            $this->javascript_in_keywords = true;
+        }
+
+        // <\ Let's see if java/javascript simulations have to be filtered... >
+
+
         $keywords=trim($keywords);
         if ( ($keywords == '') || ($keywords == 'Search') || (strtoupper($keywords) == 'ALL') ){
            $keywords = '*';
@@ -128,22 +187,37 @@ class osp {
             // making possible conjunctive boolean searches (a&b&...)
             $keywords=preg_replace('/\s+/', '+', $keywords);
         }
+
         return $keywords;
     } //format_keywords
 
     public function search_simulations($keywords, $page) {
+
+        $osp_thumbs_per_page = null;
+        if ($keywords == '*') {
+            if (!($this->java_in_keywords) && $this->javascript_in_keywords ) {
+                $osp_thumbs_per_page = OSP_THUMBS_PER_PAGE_JAVASCRIPT_ALL;
+            } else {
+                $osp_thumbs_per_page = OSP_THUMBS_PER_PAGE_JAVA;
+            }
+        } else {
+            if (!($this->java_in_keywords) && $this->javascript_in_keywords ) {
+                $osp_thumbs_per_page = OSP_THUMBS_PER_PAGE_JAVASCRIPT;
+            } else {
+                $osp_thumbs_per_page = OSP_THUMBS_PER_PAGE_JAVA;
+            }
+        }
+
         // get skip OSP parameter from $page
-        $skip = OSP_THUMBS_PER_PAGE * ($page);
+        $skip = $osp_thumbs_per_page * ($page);
 
         // get records from compadre that fulfill the keywords
         if ($keywords == '*') { // list all simulations
             $records= $this->load_xml_file(LIST_ALL_SIMULATIONS_URL . 'skip=' . $skip . '&max=' .
-                OSP_THUMBS_PER_PAGE, LIST_ALL_SIMULATIONS_URL);
-
+                $osp_thumbs_per_page, LIST_ALL_SIMULATIONS_URL);
         } else { // search with a keyword
             $records = $this->load_xml_file(SEARCH_URL . 'Skip=' . $skip . '&Max=' .
-                OSP_THUMBS_PER_PAGE .'&q="' . $keywords . '"', SEARCH_URL);
-
+                $osp_thumbs_per_page .'&q=' . $keywords, SEARCH_URL);
         }
         $file_list = array();
         if (isset($records->record)) {
