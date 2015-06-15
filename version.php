@@ -34,5 +34,5 @@ $plugin->version   = 2015051300;        // The current plugin version (Date: YYY
 $plugin->requires  = 2013111800;        // Requires this Moodle version
 $plugin->cron = 0;
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = '1.1 (Build: 2014022400)';
+$plugin->release = '1.3 (Build: 2014022400)';
 $plugin->component = 'repository_osp';  // Full name of the plugin (used for diagnostics)
