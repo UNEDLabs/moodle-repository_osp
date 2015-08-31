@@ -31,16 +31,14 @@
 
 define('LIST_ALL_SIMULATIONS_URL', 'http://www.compadre.org/osp/services/REST/osp_moodle.cfm?');
 define('SEARCH_URL', 'http://www.compadre.org/osp/services/REST/search_v1_02.cfm?verb=Search&');
-define('OSP_THUMBS_PER_PAGE_JAVA', 10);
-define('OSP_THUMBS_PER_PAGE_JAVASCRIPT', 25);
-define('OSP_THUMBS_PER_PAGE_JAVASCRIPT_ALL', 1000);
+define('OSP_THUMBS_PER_PAGE', 10);
 
 class osp {
 
     private $java_words = array('java', 'jar', 'ejs');
     private $javascript_words = array('javascript', 'js', 'zip', 'ejss');
     private $java_in_keywords = false;
-    private $javascript_in_keyword = false;
+    private $javascript_in_keywords = false;
 
     function load_xml_file($url, $choice) {
         $ch = curl_init($url);
@@ -193,32 +191,32 @@ class osp {
 
     public function search_simulations($keywords, $page) {
 
-        $osp_thumbs_per_page = null;
-        if ($keywords == '*') {
-            if (!($this->java_in_keywords) && $this->javascript_in_keywords ) {
-                $osp_thumbs_per_page = OSP_THUMBS_PER_PAGE_JAVASCRIPT_ALL;
-            } else {
-                $osp_thumbs_per_page = OSP_THUMBS_PER_PAGE_JAVA;
-            }
+        // get $type_of_simulation_to_be_retrieved
+        $type_of_simulation_to_be_retrieved = null;
+        if ($this->java_in_keywords && $this->javascript_in_keywords) {
+            $type_of_simulation_to_be_retrieved = 'EJS+EJSS';
+        } elseif ($this->java_in_keywords && !$this->javascript_in_keywords) {
+            $type_of_simulation_to_be_retrieved = 'EJS';
         } else {
-            if (!($this->java_in_keywords) && $this->javascript_in_keywords ) {
-                $osp_thumbs_per_page = OSP_THUMBS_PER_PAGE_JAVASCRIPT;
-            } else {
-                $osp_thumbs_per_page = OSP_THUMBS_PER_PAGE_JAVA;
-            }
+            $type_of_simulation_to_be_retrieved = 'EJSS';
         }
 
+
         // get skip OSP parameter from $page
-        $skip = $osp_thumbs_per_page * ($page);
+        $skip = OSP_THUMBS_PER_PAGE * ($page);
 
         // get records from compadre that fulfill the keywords
         if ($keywords == '*') { // list all simulations
-            $records= $this->load_xml_file(LIST_ALL_SIMULATIONS_URL . 'skip=' . $skip . '&max=' .
-                $osp_thumbs_per_page, LIST_ALL_SIMULATIONS_URL);
+            $records= $this->load_xml_file(LIST_ALL_SIMULATIONS_URL . 'skip=' . $skip .
+                '&OSPType=' . $type_of_simulation_to_be_retrieved .
+                '&max=' . OSP_THUMBS_PER_PAGE, LIST_ALL_SIMULATIONS_URL);
         } else { // search with a keyword
-            $records = $this->load_xml_file(SEARCH_URL . 'Skip=' . $skip . '&Max=' .
-                $osp_thumbs_per_page .'&q=' . $keywords, SEARCH_URL);
+            $records = $this->load_xml_file(SEARCH_URL . 'Skip=' . $skip .
+                '&OSPType=' . $type_of_simulation_to_be_retrieved .
+                '&Max=' .
+                OSP_THUMBS_PER_PAGE .'&q=' . $keywords, SEARCH_URL);
         }
+
         $file_list = array();
         if (isset($records->record)) {
             foreach($records->record as $record){

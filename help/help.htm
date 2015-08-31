@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+<title>OSP Help</title>
+</head>
+
+<body>
+
+<center>  
+<hr/>
+<h1>OSP: a Moodle Repository Plugin for Open Source Physics</h1>
+<p><font size="2"><a href="http://www.compadre.org/osp/search/categories.cfm?t=SimSearch">Open Source Physics</a> offers the biggest catalog of free <a href="http://www.um.es/fem/EjsWiki/pmwiki.php">Easy Java/Javascript Simulations</a>. The OSP Moodle Repository Plugin lets you download those simulations directly from your Moodle site.</font></p> 
+<hr/>
+</center>
+
+<h3>1. Basic Search</h3>
+<p>The OSP plugin looks in the descriptions of the simulations stored in Open Source Physics for the conjunction of the terms introduced in the <i>query field</i>.</p>
+
+<center>  
+<img src="query.gif" alt="query image" width="318" height="199">
+</center>
+
+<h4>1.1. Example</h4>
+<p>For instance, if your query is <mark><b>heat</b></mark>, then the plugin will show all the simulations whose descriptions include the word <i>heat</i>. If the query is expanded to <mark><b>heat fluid</b></mark>, then the search will be contrainted to those simulations whose descriptions include both words <i>heat</i> and <i>fluid</i>.</p>  
+
+<h4>1.2. Remark</h4>
+<p>Note that the ordering of the words in a query does not care. So, both queries <mark><b>fluid heat</b></mark> and <mark><b>heat fluid</b></mark> will produce exactly the same outcomes.
+
+<h3>2. Filtering the search to just include <i>Java</i> or <i>JavaScript</i> simulations</h3>
+
+To limit the outcomes of a search to simulations implemented in Java or JavaScript, include the words <b>java</b> or <b>js</b> in the query, respectively.
+
+<h4>2.1. Example</h4>
+
+<p>For example, the query <mark><b>moon phases js</mark></b> lists all the JavaScript simulations whose descriptions include <i>moon</i> and <i>phases</i>.</p>
+
+<h4>2.2. Syntactic Sugar</h4>
+
+To make queries easier to read or to express, our plugin supports the following syntactic sugar:
+<ul>
+  <li>Java simulations can be filtered using any of the following words: <b>java</b>, <b>jar</b>, or <b>ejs</b></li>
+  <li>JavaScript simulations can be filtered using: <b>javascript</b>, <b>js</b>, <b>zip</b>, or <b>ejss</b></li>
+</ul> 
+ 
+<h4>2.3. Remark</h4>
+<p>As the Open Source Physics just contains Java and JavaScript simulations, the default behavior of a query that does not include <b>java</b> nor <b>js</b> is equivalent to including both words. For instance, <mark><b>moon phases</mark></b> and <mark><b>moon phases js java</mark></b> will produce exactly the same results. 
+
+</body>
+</html>
+
