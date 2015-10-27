@@ -2,6 +2,9 @@
 # OSP Repository 1.3 #
 ######################
 
+http://dx.doi.org/10.5281/zenodo.32775
+DOI: 10.5281/zenodo.32775
+
 1. Content
 ==========
 
