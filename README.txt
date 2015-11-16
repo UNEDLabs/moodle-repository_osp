@@ -2,8 +2,8 @@
 # OSP Repository 1.3 #
 ######################
 
-http://dx.doi.org/10.5281/zenodo.32775
-DOI: 10.5281/zenodo.32775
+https://zenodo.org/badge/latestdoi/18948/UNEDLabs/moodle-repository_osp
+DOI: 10.5281/zenodo.33843
 
 1. Content
 ==========
