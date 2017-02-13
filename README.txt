@@ -8,7 +8,7 @@ DOI: 10.5281/zenodo.33843
 1. Content
 ==========
 
-This plugin lets you add any EJS application stored in the OSP-Compadre library (http://www.compadre.org/osp) directly
+This plugin lets you add any EjsS application stored in the OSP-Compadre library (http://www.compadre.org/osp) directly
 into your Moodle courses.
 
 2. License
