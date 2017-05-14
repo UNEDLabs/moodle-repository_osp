@@ -1,6 +1,6 @@
-######################
-# OSP Repository 1.3 #
-######################
+##################
+# OSP Repository #
+##################
 
 https://zenodo.org/badge/latestdoi/18948/UNEDLabs/moodle-repository_osp
 DOI: 10.5281/zenodo.33843
@@ -31,8 +31,6 @@ Moodle.org, then you are fine.
 
 This is a reposiroty plugin for Moodle so you should place the ejsapp folder in your /repository folder, inside your
 Moodle installation directory.
-
-This module has been tested in Moodle 2.7, 2.8 and 2.9.
 
 4. Dependencies
 ===============

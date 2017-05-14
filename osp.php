@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of the Moodle repository plugin "OSP"
 //
 // OSP is free software: you can redistribute it and/or modify
@@ -12,35 +11,70 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// The GNU General Public License is available on <http://www.gnu.org/licenses/>
+// You should have received a copy of the GNU General Public License
+// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
 //
 // OSP has been developed by:
-//	- Ruben Heradio: rheradio@issi.uned.es
-//  - Luis de la Torre: ldelatorre@dia.uned.es
+// - Ruben Heradio: rheradio@issi.uned.es
+// - Luis de la Torre: ldelatorre@dia.uned.es
 //
-//  at the Universidad Nacional de Educacion a Distancia, Madrid, Spain
+// at the Universidad Nacional de Educacion a Distancia, Madrid, Spain.
 
 /**
  * This plugin is used to access EJS applications from the OSP collection in compadre
  *
- * @package    repository
- * @subpackage osp
+ * @package    repository_osp
  * @copyright  2013 Luis de la Torre and Ruben Heradio
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 define('LIST_ALL_SIMULATIONS_URL', 'http://www.compadre.org/osp/services/REST/osp_moodle.cfm?');
+/**
+ *
+ */
 define('SEARCH_URL', 'http://www.compadre.org/osp/services/REST/search_v1_02.cfm?verb=Search&');
+/**
+ *
+ */
 define('OSP_THUMBS_PER_PAGE', 10);
 
+defined('MOODLE_INTERNAL') || die();
+
+/**
+ * Class osp
+ *
+ * @package    repository_osp
+ * @copyright  2013 Luis de la Torre and Ruben Heradio
+ * @author     Luis de la Torre and Ruben Heradio
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class osp {
 
-    private $java_words = array('java', 'jar', 'ejs');
-    private $javascript_words = array('javascript', 'js', 'zip', 'ejss');
-    private $java_in_keywords = false;
-    private $javascript_in_keywords = false;
+    /**
+     * @var array
+     */
+    private $javawords = array('java', 'jar', 'ejs');
+    /**
+     * @var array
+     */
+    private $jswords = array('javascript', 'js', 'zip', 'ejss');
+    /**
+     * @var bool
+     */
+    private $javakeywords = false;
+    /**
+     * @var bool
+     */
+    private $jskeywords = false;
 
-    function load_xml_file($url, $choice) {
+    /**
+     * Load the xml file served by the OSP repository
+     *
+     * @param $url
+     * @param $choice
+     * @return mixed
+     */
+    public function load_xml_file($url, $choice) {
         $ch = curl_init($url);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
         curl_setopt($ch, CURLOPT_HEADER, 0);
@@ -48,25 +82,27 @@ class osp {
         curl_close($ch);
         if ($choice == LIST_ALL_SIMULATIONS_URL) {
             return $xml->Results->records;
-        } else { // choice == SEARCH_URL
+        } else { // Choice == SEARCH_URL.
             return $xml->Search->records;
         }
-    } //load_xml_file
+    }
 
-    function process_record($record){
-
-        /////////////////////////////////////////////////////
-        // Remark: a record may include 0..n simulations
-        /////////////////////////////////////////////////////
+    /**
+     * Process a record with information of n simulations
+     *
+     * @param $record
+     * @return array
+     */
+    public function process_record($record) {
+        // Remark: a record may include 0...n simulations.
 
         $result = array();
-        $record_as_array = (array) $record;
+        $arrayrecord = (array) $record;
 
-        // <information common to all the simulations of the record>
-
+        // Information common to all the simulations of the record.
         $result['common_information'] = array();
 
-        // author
+        // Authors.
         $seeker = (array) $record->contributors;
         $author = $seeker['contributor'];
         if (is_array($author)) {
@@ -74,20 +110,18 @@ class osp {
         }
         $result['common_information']['author'] = $author;// . $description;
 
-        // date
-        $date = $record_as_array['oai-datestamp'];
+        // Date.
+        $date = $arrayrecord['oai-datestamp'];
         $date = preg_replace('/Z/', '', $date);
         $result['common_information']['date'] = strtotime($date);
 
-        // thumbnail
+        // Thumbnail.
         $result['common_information']['thumbnail'] = (string) $record->{'thumbnail-url'};
 
-        // license
+        // License.
         $result['common_information']['license'] = 'cc-sa';
 
-        // <\information common to all the simulations of the record>
-
-        // <information specific for each simulation of the record>
+        // Information specific for each simulation of the record.
 
         $result['simulations'] = array();
         $simulation = array();
@@ -96,149 +130,153 @@ class osp {
             if (is_object($value)) {
                 $filename = (string) $value->{'file-name'};
                 $filetype = (string) $value->{'file-type'};
-                $xml_title = (string) $value->{'title'};
+                $title = (string) $value->{'title'};
                 $extension = pathinfo($filename, PATHINFO_EXTENSION);
 
-                if (  ( (($extension == 'jar') && $this->java_in_keywords && preg_match('/^ejs_/i', $filename)) ||
-                        (($extension == 'zip') && $this->javascript_in_keywords && preg_match('/^ejss_/i', $filename)))
+                if (((($extension == 'jar') && $this->javakeywords && preg_match('/^ejs_/i', $filename)) ||
+                        (($extension == 'zip') && $this->jskeywords && preg_match('/^ejss_/i', $filename)))
                     && ($filetype == 'Main')
-                    && ($xml_title != 'Easy Java Simulations Modeling and Authoring Tool')  ) {
+                    && ($title != 'Easy Java Simulations Modeling and Authoring Tool')) {
 
-                    // filename title
+                    // Filename title.
                     $simulation['title'] = $filename;
 
-                    // source
+                    // Source.
                     $source = (string) $value->{'access-url'};
                     $simulation['source'] = $source . '&EJSMoodleApp=1';
 
-                    // shorttitle
+                    // Shorttitle.
                     $description = (string) $record->{'description'};
                     $description = preg_replace('/<.+?>/', '', $description);
                     $simulation['shorttitle'] = '`' . $filename . '´: ' . $description;
 
-                    // size
-                    $seeker_aux = (array) $value->{'file-name'};
-                    $seeker_aux = $seeker_aux['@attributes'];
-                    $size = $seeker_aux['file-size'];
+                    // Size.
+                    $seekeraux = (array) $value->{'file-name'};
+                    $seekeraux = $seekeraux['@attributes'];
+                    $size = $seekeraux['file-size'];
                     $simulation['size'] = $size;
 
                     $result['simulations'][] = $simulation;
                 }
             }
-        } //foreach
-
-        // <\information specific for each simulation of the record>
+        } //End of foreach.
 
         return $result;
-    } // process_record
+    } // End of function process_record.
 
 
+    /**
+     * Keywords for searching EjsS simulations
+     *
+     * @param $keywords
+     * @return mixed|string
+     */
     public function format_keywords($keywords) {
+        // Let's see if java/javascript simulations have to be filtered...
 
-        // < Let's see if java/javascript simulations have to be filtered... >
-
-        // java ?
-        $this->java_in_keywords = false;
-        $found = false;
+        // Java?
+        $this->javakeywords = false;
         $i = 0;
-        $size = sizeof($this->java_words);
-        while ( (!($this->java_in_keywords)) && ($i<$size) ) {
-            if ( preg_match('/\b' . $this->java_words[$i] . '\b/i', $keywords) ) {
-                $this->java_in_keywords = true;
-                foreach ( $this->java_words as $java_word) {
-                    $keywords = preg_replace('/\b' . $java_word . '\b/i', '', $keywords);
+        $size = count($this->javawords);
+        while ((!($this->javakeywords)) && ($i < $size)) {
+            if ( preg_match('/\b' . $this->javawords[$i] . '\b/i', $keywords) ) {
+                $this->javakeywords = true;
+                foreach ( $this->javawords as $javaword) {
+                    $keywords = preg_replace('/\b' . $javaword . '\b/i', '', $keywords);
                 }
             } else {
                 $i++;
             }
         }
 
-        // javascript ?
-        $this->javascript_in_keywords = false;
-        $found = false;
+        // Javascript?
+        $this->jskeywords = false;
         $i = 0;
-        $size = sizeof($this->javascript_words);
-        while ( (!($this->javascript_in_keywords)) && ($i<$size) ) {
-            if ( preg_match('/\b' . $this->javascript_words[$i] . '\b/i', $keywords) ) {
-                $this->javascript_in_keywords = true;
-                foreach ( $this->javascript_words as $javascript_word) {
-                    $keywords = preg_replace('/\b' . $javascript_word . '\b/i', '', $keywords);
+        $size = count($this->jswords);
+        while ((!($this->jskeywords)) && ($i < $size)) {
+            if ( preg_match('/\b' . $this->jswords[$i] . '\b/i', $keywords) ) {
+                $this->jskeywords = true;
+                foreach ($this->jswords as $jsword) {
+                    $keywords = preg_replace('/\b' . $jsword . '\b/i', '', $keywords);
                 }
             } else {
                 $i++;
             }
         }
 
-        // by default, no filter is used
-        if ( !( $this->java_in_keywords) && !($this->javascript_in_keywords) ) {
-            $this->java_in_keywords = true;
-            $this->javascript_in_keywords = true;
+        // By default, no filter is used.
+        if (!( $this->javakeywords) && !($this->jskeywords)) {
+            $this->javakeywords = true;
+            $this->jskeywords = true;
         }
-
-        // <\ Let's see if java/javascript simulations have to be filtered... >
-
 
         $keywords=trim($keywords);
-        if ( ($keywords == '') || ($keywords == 'Search') || (strtoupper($keywords) == 'ALL') ){
+        if (($keywords == '') || ($keywords == 'Search') || (strtoupper($keywords) == 'ALL')){
            $keywords = '*';
         } else {
-            // making possible conjunctive boolean searches (a&b&...)
-            $keywords=preg_replace('/\s+/', '+', $keywords);
+            // Making possible conjunctive boolean searches (a&b&...).
+            $keywords = preg_replace('/\s+/', '+', $keywords);
         }
 
         return $keywords;
-    } //format_keywords
+    } // End of function format_keywords.
 
+    /**
+     * Searches simulations using the specified keywords
+     *
+     * @param $keywords
+     * @param $page
+     * @return array
+     */
     public function search_simulations($keywords, $page) {
 
-        // get $type_of_simulation_to_be_retrieved
-        $type_of_simulation_to_be_retrieved = null;
-        if ($this->java_in_keywords && $this->javascript_in_keywords) {
-            $type_of_simulation_to_be_retrieved = 'EJS+EJSS';
-        } elseif ($this->java_in_keywords && !$this->javascript_in_keywords) {
-            $type_of_simulation_to_be_retrieved = 'EJS';
+        // Get the type of the simulation to be retrieved.
+        $type = null;
+        if ($this->javakeywords && $this->jskeywords) {
+            $type = 'EJS+EJSS';
+        } elseif ($this->javakeywords && !$this->jskeywords) {
+            $type = 'EJS';
         } else {
-            $type_of_simulation_to_be_retrieved = 'EJSS';
+            $type = 'EJSS';
         }
 
-
-        // get skip OSP parameter from $page
+        // Get skip OSP parameter from $page.
         $skip = OSP_THUMBS_PER_PAGE * ($page);
 
-        // get records from compadre that fulfill the keywords
-        if ($keywords == '*') { // list all simulations
-            $records= $this->load_xml_file(LIST_ALL_SIMULATIONS_URL . 'skip=' . $skip .
-                '&OSPType=' . $type_of_simulation_to_be_retrieved .
+        // Get records from compadre that fulfill the keywords.
+        if ($keywords == '*') { // List all simulations.
+            $records = $this->load_xml_file(LIST_ALL_SIMULATIONS_URL . 'skip=' . $skip .
+                '&OSPType=' . $type .
                 '&max=' . OSP_THUMBS_PER_PAGE, LIST_ALL_SIMULATIONS_URL);
         } else { // search with a keyword
             $records = $this->load_xml_file(SEARCH_URL . 'Skip=' . $skip .
-                '&OSPType=' . $type_of_simulation_to_be_retrieved .
+                '&OSPType=' . $type .
                 '&Max=' .
                 OSP_THUMBS_PER_PAGE .'&q=' . $keywords, SEARCH_URL);
         }
 
-        $file_list = array();
+        $filelist = array();
         if (isset($records->record)) {
-            foreach($records->record as $record){
-                $processed_record = $this->process_record($record);
-                if (!empty($processed_record['simulations'])) {
-                    foreach ($processed_record['simulations'] as $simulation) {
-                        $list_item = array();
-                        $list_item['author'] = $processed_record['common_information']['author'];
-                        $list_item['date'] =  $processed_record['common_information']['date'];
-                        $list_item['thumbnail'] =  $processed_record['common_information']['thumbnail'];
-                        $list_item['license'] =  $processed_record['common_information']['license'];
-                        $list_item['title'] =  $simulation['title'];
-                        $list_item['source'] =  $simulation['source'];
-                        $list_item['shorttitle'] =  $simulation['shorttitle'];
-                        $list_item['size'] =  $simulation['size'];
-                        $file_list[] = $list_item;
+            foreach($records->record as $record) {
+                $processedrecord = $this->process_record($record);
+                if (!empty($processedrecord['simulations'])) {
+                    foreach ($processedrecord['simulations'] as $simulation) {
+                        $item = array();
+                        $item['author'] = $processedrecord['common_information']['author'];
+                        $item['date'] = $processedrecord['common_information']['date'];
+                        $item['thumbnail'] = $processedrecord['common_information']['thumbnail'];
+                        $item['license'] = $processedrecord['common_information']['license'];
+                        $item['title'] = $simulation['title'];
+                        $item['source'] = $simulation['source'];
+                        $item['shorttitle'] = $simulation['shorttitle'];
+                        $item['size'] = $simulation['size'];
+                        $filelist[] = $item;
                     }
                 }
             }
         }
 
-        return $file_list;
-    } //search_simulations
+        return $filelist;
+    } // End of function search_simulations.
 
-} //class osp
+} // End of class osp.

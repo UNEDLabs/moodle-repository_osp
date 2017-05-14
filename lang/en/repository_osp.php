@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of the Moodle repository plugin "OSP"
 //
 // OSP is free software: you can redistribute it and/or modify
@@ -12,20 +11,20 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// The GNU General Public License is available on <http://www.gnu.org/licenses/>
+// You should have received a copy of the GNU General Public License
+// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
 //
 // OSP has been developed by:
-//	- Ruben Heradio: rheradio@issi.uned.es
-//  - Luis de la Torre: ldelatorre@dia.uned.es
+// - Ruben Heradio: rheradio@issi.uned.es
+// - Luis de la Torre: ldelatorre@dia.uned.es
 //
-//  at the Universidad Nacional de Educacion a Distancia, Madrid, Spain
+// at the Universidad Nacional de Educacion a Distancia, Madrid, Spain.
 
 
 /**
  * English strings for osp
  *
- * @package    repository
- * @subpackage osp
+ * @package    repository_osp
  * @copyright  2013 Luis de la Torre and Ruben Heradio
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

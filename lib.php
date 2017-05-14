@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of the Moodle repository plugin "OSP"
 //
 // OSP is free software: you can redistribute it and/or modify
@@ -12,32 +11,45 @@
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
-// The GNU General Public License is available on <http://www.gnu.org/licenses/>
+// You should have received a copy of the GNU General Public License
+// along with Moodle. If not, see <http://www.gnu.org/licenses/>.
 //
 // OSP has been developed by:
-//	- Ruben Heradio: rheradio@issi.uned.es
-//  - Luis de la Torre: ldelatorre@dia.uned.es
+// - Ruben Heradio: rheradio@issi.uned.es
+// - Luis de la Torre: ldelatorre@dia.uned.es
 //
-//  at the Universidad Nacional de Educacion a Distancia, Madrid, Spain
+// at the Universidad Nacional de Educacion a Distancia, Madrid, Spain.
 
 /**
  * This plugin is used to access EJS applications from the OSP collection in ComPADRE.
  *
- * @package    repository
+ * @package    repository_osp
  * @subpackage osp
  * @copyright  2013 Luis de la Torre and Ruben Heradio
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot . '/repository/lib.php');
 require_once(dirname(__FILE__) . '/osp.php');
 
-
 /**
- * repository_osp class
- * This is a class used to browse EJS simulations from the OSP collection
+ * This is a class used to browse EJS simulations from the OSP collection.
+ *
+ * @package    repository_osp
+ * @copyright  2013 Luis de la Torre and Ruben Heradio
+ * @author     Luis de la Torre and Ruben Heradio
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class repository_osp extends repository {
+
+    /**
+     * repository_osp constructor.
+     *
+     * @param int $repositoryid
+     * @param bool|int|stdClass $context
+     * @param array $options
+     */
     public function __construct($repositoryid, $context = SYSCONTEXTID, $options = array()) {
         global $SESSION;
         parent::__construct($repositoryid, $context, $options);
@@ -45,20 +57,27 @@ class repository_osp extends repository {
         if (empty($this->keywords)) {
             $this->keywords = optional_param('s', '', PARAM_RAW);
         }
-        $sess_keyword = 'osp_'.$this->id.'_keyword';
+        $keyword = 'osp_'.$this->id.'_keyword';
         if (empty($this->keywords) && optional_param('page', '', PARAM_RAW)) {
-            // This is the request of another page for the last search, retrieve the cached keywords
-            if (isset($SESSION->{$sess_keyword})) {
-                $this->keywords = $SESSION->{$sess_keyword};
+            // This is the request of another page for the last search, retrieve the cached keywords.
+            if (isset($SESSION->{$keyword})) {
+                $this->keywords = $SESSION->{$keyword};
             }
         } else if (!empty($this->keywords)) {
-            // save the search keywords in the session so we can retrieve it later
-            $SESSION->{$sess_keyword} = $this->keywords;
+            // Save the search keywords in the session so we can retrieve it later.
+            $SESSION->{$keyword} = $this->keywords;
         }
     }
 
+    /**
+     * Get the list of ejss simulations in the osp repository.
+     *
+     * @param string $path
+     * @param string $page
+     * @return array list
+     */
     public function get_listing($path = '', $page = '') {
-    $client = new osp;
+        $client = new osp;
         $list = array();
         $list['page'] = (int)$page;
         if ($list['page'] < 1) {
@@ -69,23 +88,34 @@ class repository_osp extends repository {
         $list['list'] = $client->search_simulations($client->format_keywords($this->keywords), $list['page'] - 1);
         $list['nologin'] = true;
         $list['norefresh'] = false;
-        if ( !empty($list['list']) ) {
-            $list['pages'] = -1; // means we don't know exactly how many pages there are but we can always jump to the next page
+        if (!empty($list['list'])) {
+            $list['pages'] = -1; // Means we don't know exactly how many pages there are but we can always jump to the next page.
         } else if ($list['page'] > 1) {
-            $list['pages'] = $list['page']; // no images available on this page, this is the last page
+            $list['pages'] = $list['page']; // No images available on this page, this is the last page.
         } else {
-            $list['pages'] = 0; // no paging
+            $list['pages'] = 0; // No paging.
         }
         return $list;
-    } // get_listing
+    }
 
-    // Search
-    // If this plugin supports global search, this function returns true.
-    // Search function will be called when global searching is working
+    /**
+     * If this plugin supports global search, this function returns true.
+     * Search function will be called when global searching is working
+     *
+     * @return bool
+     */
     public function global_search() {
         return false;
     }
-    public function search($search_text, $page = '') {
+
+    /**
+     * Searches for EjsS simulations in the OSP repository.
+     *
+     * @param string $searchtext
+     * @param string $page
+     * @return array
+     */
+    public function search($searchtext, $page = '') {
         global $CFG;
 
         $client = new osp;
@@ -94,25 +124,30 @@ class repository_osp extends repository {
         if ($list['page'] < 1) {
             $list['page'] = 1;
         }
-        if ($search_text == '' && !empty($this->keywords)) {
-            $search_text = $this->keywords;
+        if ($searchtext == '' && !empty($this->keywords)) {
+            $searchtext = $this->keywords;
         }
-        $keywords = $client->format_keywords($search_text);
+        $keywords = $client->format_keywords($searchtext);
         $list['list'] = $client->search_simulations($keywords, $list['page'] - 1);
         $list['manage'] = 'http://www.compadre.org/osp/';
         $list['help'] = $CFG->wwwroot . '/repository/osp/help/help.htm';
         $list['nologin'] = true;
         $list['norefresh'] = false;
-        if ( !empty($list['list']) ) {
-            $list['pages'] = -1; // means we don't know exactly how many pages there are but we can always jump to the next page
+        if (!empty($list['list'])) {
+            $list['pages'] = -1; // Means we don't know exactly how many pages there are but we can always jump to the next page.
         } else if ($list['page'] > 1) {
-            $list['pages'] = $list['page']; // no images available on this page, this is the last page
+            $list['pages'] = $list['page']; // No images available on this page, this is the last page.
         } else {
-            $list['pages'] = 0; // no paging
+            $list['pages'] = 0; // No paging.
         }
         return $list;
-    } //search
+    }
 
+    /**
+     * Specifies the types that can be returned
+     *
+     * @return int
+     */
     public function supported_returntypes() {
         return (FILE_INTERNAL);
     }
@@ -123,7 +158,7 @@ class repository_osp extends repository {
      * @return array
      */
     public function supported_filetypes() {
-        return array('application/java-archive','application/zip');
+        return array('application/java-archive', 'application/zip');
     }
 
     /**
