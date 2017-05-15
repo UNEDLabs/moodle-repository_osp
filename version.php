@@ -30,9 +30,9 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2017051402;        // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2013111800;        // Requires this Moodle version
+$plugin->version   = 2017051403;        // The current plugin version (Date: YYYYMMDDXX).
+$plugin->requires  = 2013111800;        // Requires this Moodle version.
 $plugin->cron = 0;
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = '1.3 (Build: 2017051402)';
-$plugin->component = 'repository_osp';  // Full name of the plugin (used for diagnostics)
+$plugin->release = '1.3 (Build: 2017051403)';
+$plugin->component = 'repository_osp';  // Full name of the plugin (used for diagnostics).

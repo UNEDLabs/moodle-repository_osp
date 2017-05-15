@@ -70,9 +70,9 @@ class osp {
     /**
      * Load the xml file served by the OSP repository
      *
-     * @param $url
+     * @param string $url
      * @param $choice
-     * @return mixed
+     * @return stdClass $xml
      */
     public function load_xml_file($url, $choice) {
         $ch = curl_init($url);
@@ -90,8 +90,8 @@ class osp {
     /**
      * Process a record with information of n simulations
      *
-     * @param $record
-     * @return array
+     * @param stdClass $record
+     * @return array $result
      */
     public function process_record($record) {
         // Remark: a record may include 0...n simulations.
@@ -168,8 +168,8 @@ class osp {
     /**
      * Keywords for searching EjsS simulations
      *
-     * @param $keywords
-     * @return mixed|string
+     * @param string $keywords
+     * @return mixed|string $keywords
      */
     public function format_keywords($keywords) {
         // Let's see if java/javascript simulations have to be filtered...
@@ -181,7 +181,7 @@ class osp {
         while ((!($this->javakeywords)) && ($i < $size)) {
             if ( preg_match('/\b' . $this->javawords[$i] . '\b/i', $keywords) ) {
                 $this->javakeywords = true;
-                foreach ( $this->javawords as $javaword) {
+                foreach ($this->javawords as $javaword) {
                     $keywords = preg_replace('/\b' . $javaword . '\b/i', '', $keywords);
                 }
             } else {
@@ -210,9 +210,9 @@ class osp {
             $this->jskeywords = true;
         }
 
-        $keywords=trim($keywords);
-        if (($keywords == '') || ($keywords == 'Search') || (strtoupper($keywords) == 'ALL')){
-           $keywords = '*';
+        $keywords = trim($keywords);
+        if (($keywords == '') || ($keywords == 'Search') || (strtoupper($keywords) == 'ALL')) {
+            $keywords = '*';
         } else {
             // Making possible conjunctive boolean searches (a&b&...).
             $keywords = preg_replace('/\s+/', '+', $keywords);
@@ -224,9 +224,9 @@ class osp {
     /**
      * Searches simulations using the specified keywords
      *
-     * @param $keywords
-     * @param $page
-     * @return array
+     * @param string $keywords
+     * @param int $page
+     * @return array $filelist
      */
     public function search_simulations($keywords, $page) {
 
@@ -234,7 +234,7 @@ class osp {
         $type = null;
         if ($this->javakeywords && $this->jskeywords) {
             $type = 'EJS+EJSS';
-        } elseif ($this->javakeywords && !$this->jskeywords) {
+        } else if ($this->javakeywords && !$this->jskeywords) {
             $type = 'EJS';
         } else {
             $type = 'EJSS';
@@ -248,7 +248,7 @@ class osp {
             $records = $this->load_xml_file(LIST_ALL_SIMULATIONS_URL . 'skip=' . $skip .
                 '&OSPType=' . $type .
                 '&max=' . OSP_THUMBS_PER_PAGE, LIST_ALL_SIMULATIONS_URL);
-        } else { // search with a keyword
+        } else { // Search with a keyword.
             $records = $this->load_xml_file(SEARCH_URL . 'Skip=' . $skip .
                 '&OSPType=' . $type .
                 '&Max=' .
@@ -257,7 +257,7 @@ class osp {
 
         $filelist = array();
         if (isset($records->record)) {
-            foreach($records->record as $record) {
+            foreach ($records->record as $record) {
                 $processedrecord = $this->process_record($record);
                 if (!empty($processedrecord['simulations'])) {
                     foreach ($processedrecord['simulations'] as $simulation) {
