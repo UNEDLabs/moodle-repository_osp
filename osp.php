@@ -29,13 +29,9 @@
  */
 
 define('LIST_ALL_SIMULATIONS_URL', 'http://www.compadre.org/osp/services/REST/osp_moodle.cfm?');
-/**
- *
- */
+
 define('SEARCH_URL', 'http://www.compadre.org/osp/services/REST/search_v1_02.cfm?verb=Search&');
-/**
- *
- */
+
 define('OSP_THUMBS_PER_PAGE', 10);
 
 defined('MOODLE_INTERNAL') || die();
@@ -71,7 +67,7 @@ class osp {
      * Load the xml file served by the OSP repository
      *
      * @param string $url
-     * @param $choice
+     * @param mixed $choice
      * @return stdClass $xml
      */
     public function load_xml_file($url, $choice) {
