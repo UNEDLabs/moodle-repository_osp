@@ -32,3 +32,6 @@ $string['keywords'] = 'T&eacute;rminos de B&uacute;squeda de la Simulaci&oacute;
 $string['pluginname'] = 'Open Source Physics';
 $string['osp:view'] = 'Repositorio de Open Source Physics';
 $string['configplugin'] = 'Configuraci&oacute;n OSP';
+
+//Privacy
+$string['privacy:metadata'] = 'El plugin OSP repository tan solo da acceso a las simulaciones disponibles en la web de OSP.';

@@ -33,3 +33,6 @@ $string['keywords'] = 'Simulation Search Terms';
 $string['pluginname'] = 'Open Source Physics';
 $string['osp:view'] = 'Open Source Physics repository';
 $string['configplugin'] = 'OSP configuration';
+
+//Privacy
+$string['privacy:metadata'] = 'The OSP repository plugin just gives access to the simulations available at the OSP site.';
